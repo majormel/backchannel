@@ -1,0 +1,62 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+      - 'codex/**'
+  pull_request:
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: uv lock --check
+      - run: uv sync --extra dev
+      - run: uv run mitmdump --version
+      - run: uv run pytest -q
+      - run: uv build
+      - run: uvx twine check dist/*
+      - run: >-
+          uv export --python 3.13 --no-dev --no-emit-project --no-hashes --format requirements-txt |
+          uvx pip-audit -r /dev/stdin --no-deps --disable-pip --progress-spinner off
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - run: npm test -- --run
+      - run: npm run build
+      - run: git diff --exit-code -- ../backchannel/dashboard_dist
+      - run: npm audit --audit-level=high

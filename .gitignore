@@ -1,0 +1,97 @@
+# Python
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+*.egg-info/
+dist
+build
+.pytest_cache
+.coverage
+htmlcov
+
+# backchannel capture files
+.mitmproxy
+backchannel_flows.jsonl
+*.jsonl
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.har
+*.pcap
+*.pcapng
+*.mobileconfig
+*.pem
+*.crt
+*.cer
+*.key
+*.p12
+*.pfx
+artifacts/
+exports/
+
+# Generated artifacts (decoding output)
+auctions_*.json
+*_decoded.json
+*_normalized.json
+*_stats.json
+
+# Debug and test files
+curl_*.txt
+curl_*.bin
+flows*.json
+new_max_bytes_flow*.json
+req_*.bin
+resp_*.bin
+card_image.bin
+*.docx
+
+# Pipeline outputs (keep source, ignore generated data)
+pipeline/*.json
+pipeline/*.bin
+
+# Synthetic test fixtures
+!tests/fixtures/sample_flows.jsonl
+!sandbox/fixtures/sample_flows.jsonl
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dashboard build artifacts
+dashboard/node_modules/
+dashboard/.vite/
+dashboard/dist/
+dashboard/dist-ssr/
+
+# Logs
+*.log
+
+# Local sandbox overrides
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Local agent and planning files
+.claude/
+AGENTS.md
+CLAUDE.md
+PROGRESS.md
+ROADMAP_GUIDELINES.md
+AUCTIONS_STATS_SPEC.md
+docs/agent/
+docs/myteam_auction_research.md
+pipeline/
+roadmap/

@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "mitmproxy-sandbox": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "SANDBOX_PROJECT_PATH",
+        "run",
+        "backchannel",
+        "mcp"
+      ],
+      "env": {
+        "BACKCHANNEL_API_HOST": "127.0.0.1",
+        "BACKCHANNEL_API_PORT": "8801",
+        "BACKCHANNEL_TOKEN": "sandbox-test-token-12345"
+      }
+    }
+  }
+}
