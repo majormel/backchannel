@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, GitCompare, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, GitCompare, ChevronDown, ChevronUp } from '@/components/ui/icons'
 import { Button } from './ui/button'
 import { DiffViewer, InlineDiff } from './DiffViewer'
 import { compareFlows } from '@/lib/api'

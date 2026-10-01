@@ -153,6 +153,14 @@ export type MobilePairing = {
   proxy_ready?: boolean
 }
 
+export type NetworkInfo = {
+  lan_ip: string
+  proxy_port: number
+  dashboard_port: number
+  cert_available: boolean
+  wifi_ssid: string | null
+}
+
 export type CodexStatus = {
   available: boolean
   running: boolean

@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Avenir Next', 'Segoe UI Variable', 'Helvetica Neue', 'system-ui', 'sans-serif'],
-        mono: ['SFMono-Regular', 'Cascadia Code', 'Roboto Mono', 'Menlo', 'Consolas', 'monospace'],
+        sans: ['Manrope', 'Avenir Next', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
         border: 'hsl(var(--border))',

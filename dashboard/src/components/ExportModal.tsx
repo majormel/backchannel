@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Download, Copy, Check, FileJson, FileText, Terminal } from 'lucide-react'
+import { Download, Copy, Check, FileJson, FileText, Terminal } from '@/components/ui/icons'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 import { exportFlows } from '@/lib/api'

@@ -3693,8 +3693,8 @@ def _stop_mobile_pairing_server() -> None:
 
 
 def _create_mobile_pairing(wifi_ssid: str) -> tuple[dict, int]:
-    normalized_ssid = str(wifi_ssid or "").strip()
-    if not normalized_ssid:
+    normalized_ssid = str(wifi_ssid or "")
+    if not normalized_ssid.strip():
         return {"error": "wifi_ssid required"}, 400
     if len(normalized_ssid.encode("utf-8")) > 32:
         return {"error": "wifi_ssid must be 32 bytes or fewer"}, 400
@@ -4071,6 +4071,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "proxy_port": proxy_port,
                 "dashboard_port": dashboard_port,
                 "cert_available": mobile_setup.get_mitmproxy_cert_path() is not None,
+                "wifi_ssid": mobile_setup.get_wifi_ssid(),
             })
             return
         if path == "/cert":

@@ -1,4 +1,7 @@
 @import "./tokens.css";
+@import "./fonts.css";
+@import "./brand-mark.css";
+@import "./connection.css";
 
 @tailwind base;
 @tailwind components;
@@ -6,7 +9,7 @@
 
 @layer base {
   :root {
-    font-family: 'Avenir Next', 'Segoe UI Variable', 'Helvetica Neue', system-ui, sans-serif;
+    font-family: 'Manrope', 'Avenir Next', sans-serif;
   }
 
   * {
@@ -51,7 +54,7 @@
   code,
   pre,
   .font-mono {
-    font-family: 'SFMono-Regular', 'Cascadia Code', 'Roboto Mono', Menlo, Consolas, monospace;
+    font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
     letter-spacing: 0;
   }
 
@@ -65,8 +68,8 @@
     .connection-drawer,
     .dialog-overlay,
     .dialog-content {
-      animation: none;
-      transition: none;
+      animation: none !important;
+      transition: none !important;
     }
   }
 
@@ -123,11 +126,148 @@
   }
 
   .connection-launchpad {
-    background: var(--body-bg);
+    background: radial-gradient(ellipse at 85% 35%, hsl(var(--accent) / 0.045), transparent 50%);
   }
 
   .connection-signal-field {
     display: none;
+  }
+
+  .app-shell {
+    height: 100dvh;
+    background: var(--body-bg);
+  }
+
+  .terminal-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .terminal-cursor {
+    width: 5px;
+    height: 11px;
+    background: hsl(var(--accent));
+    opacity: 0.65;
+  }
+
+  .nav-rail {
+    background-image: linear-gradient(160deg, hsl(150 35% 90% / 0.055), transparent 55%);
+    background-color: hsl(160 15% 9% / 0.55);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    box-shadow: var(--glass-highlight), 8px 0 40px hsl(165 30% 2% / 0.12);
+  }
+
+  .nav-item[aria-current='page'] {
+    border-color: hsl(var(--accent) / 0.2);
+    background: linear-gradient(100deg, hsl(var(--accent) / 0.1), hsl(var(--accent) / 0.025));
+    box-shadow: inset 0 1px 0 hsl(var(--accent) / 0.06);
+    color: hsl(var(--accent));
+  }
+
+  .command-bar {
+    background: hsl(var(--background) / 0.25);
+  }
+
+  .capture-toolbar {
+    background: hsl(var(--surface-2) / 0.25);
+  }
+
+  .metric-card {
+    overflow: hidden;
+    min-height: 140px;
+    background-image: linear-gradient(140deg, hsl(var(--accent) / 0.035), transparent 60%), var(--glass-sheen);
+  }
+
+  .signal-lens {
+    position: relative;
+    color: hsl(var(--accent));
+    filter: drop-shadow(0 0 24px hsl(var(--accent) / 0.08));
+  }
+
+  .signal-lens::before {
+    content: '';
+    position: absolute;
+    inset: 15%;
+    border-radius: 50%;
+    background: hsl(var(--accent) / 0.05);
+    filter: blur(45px);
+  }
+
+  .signal-lens svg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .signal-orbit {
+    transform-origin: 180px 180px;
+    animation: signal-orbit 50s linear infinite;
+  }
+
+  .signal-packet {
+    animation: signal-packet 5s ease-in-out infinite;
+  }
+
+  .launchpad-hero {
+    position: relative;
+  }
+
+  .launchpad-hero::before {
+    content: '';
+    position: absolute;
+    inset: -50px -30px;
+    pointer-events: none;
+    opacity: 0.6;
+    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(90deg, transparent, #000 65%, transparent);
+  }
+
+  .inspector-empty {
+    background-image: radial-gradient(ellipse at 50% 40%, hsl(var(--accent) / 0.035), transparent 55%), var(--glass-sheen);
+  }
+
+  .source-card {
+    border-radius: 18px;
+    background-image: var(--glass-sheen);
+    background-color: hsl(var(--glass-tint) / 0.5);
+    box-shadow: var(--glass-highlight), var(--elevation-1);
+  }
+
+  .dialog-overlay {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  .dialog-content {
+    background-image: var(--glass-sheen);
+    background-color: hsl(var(--card) / 0.92);
+    -webkit-backdrop-filter: blur(32px);
+    backdrop-filter: blur(32px);
+  }
+
+  @keyframes signal-orbit {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes signal-packet {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.9; }
+  }
+
+  @media (max-width: 767px) {
+    .workspace-heading { padding-top: 20px; padding-bottom: 16px; }
+    .metric-card { min-height: 120px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .signal-orbit, .signal-packet { animation: none; }
+    .nav-item, .ui-button { transition: none; }
   }
 
   @media (pointer: coarse) {

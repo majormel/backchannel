@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, Play, RefreshCw, Router, SlidersHorizontal, Square, Trash2, Waves } from 'lucide-react'
+import { ChevronDown, Play, RefreshCw, Router, SlidersHorizontal, Square, Trash2, Waves } from '@/components/ui/icons'
 
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'

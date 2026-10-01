@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Keyboard } from 'lucide-react'
+import { Activity, Keyboard, Radio } from '@/components/ui/icons'
 import type { SortingState } from '@tanstack/react-table'
 
 import { BookmarksPanel } from './components/BookmarksPanel'
@@ -21,6 +21,7 @@ import { SequenceDiagramModal } from './components/SequenceDiagramModal'
 import { BrandMark } from './components/layout/BrandMark'
 import { CommandBar } from './components/layout/CommandBar'
 import { NavRail } from './components/layout/NavRail'
+import { WorkspaceHeading } from './components/layout/WorkspaceHeading'
 import { Button } from './components/ui/button'
 import { useAutoRefresh } from './hooks/useAutoRefresh'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
@@ -639,8 +640,8 @@ function App() {
     settings: 'Settings',
   }[view]
   const captureControls = (
-    <div className="flex flex-wrap items-center gap-2">
-      <div role="group" aria-label="Filter flows by protocol" className="inline-flex overflow-hidden rounded-md border border-hairline">
+    <div className="capture-toolbar flex shrink-0 flex-wrap items-center gap-2 border-b border-white/[0.07] px-4 py-3">
+      <div role="group" aria-label="Filter flows by protocol" className="inline-flex overflow-hidden rounded-lg border border-white/[0.08] bg-black/10">
         {(['all', 'http', 'https', 'websocket'] as const).map((option) => (
           <button
             key={option}
@@ -668,7 +669,7 @@ function App() {
       >
         {showBookmarksOnly ? 'Bookmarked' : 'All flows'}
       </button>
-      <span className="ml-auto font-mono text-xs text-muted-foreground">
+      <span className="ml-auto font-mono text-[10px] text-muted-foreground">
         {displayedFlows.length} / {totalFlows || flows.length} flows
       </span>
     </div>
@@ -688,6 +689,20 @@ function App() {
       onToggleBookmark={handleToggleBookmark}
       highlightQuery={activeSearchQuery}
     />
+  )
+
+  const trafficStream = (
+    <section aria-label="Traffic stream" className="glass-panel flex min-h-[240px] flex-1 flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-3.5">
+        <div className="flex items-center gap-2.5 text-xs font-medium"><Activity className="h-3.5 w-3.5 text-accent" />Traffic stream</div>
+        <span className="terminal-label flex items-center gap-2 text-[9px] text-muted-foreground">
+          <span className={cn('h-1.5 w-1.5 rounded-full', status.running ? 'bg-accent' : 'bg-muted-foreground/50')} />
+          {status.running ? 'Capturing' : 'Standby'}
+        </span>
+      </div>
+      {captureControls}
+      <div className="min-h-0 flex-1">{flowTable}</div>
+    </section>
   )
 
   const renderView = () => {
@@ -712,8 +727,8 @@ function App() {
     switch (view) {
       case 'search':
         return (
-          <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-            <div className="glass-subpanel p-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 pb-5 sm:px-6">
+            <div className="glass-subpanel shrink-0 p-3">
               <FlowSearch
                 onSearch={handleSearch}
                 onClear={handleClearSearch}
@@ -724,15 +739,13 @@ function App() {
                 resetToken={searchResetToken}
               />
             </div>
-            {captureControls}
-            <div className="glass-panel flex min-h-0 flex-1 overflow-hidden">{flowTable}</div>
+            {trafficStream}
           </div>
         )
       case 'flows':
         return (
-          <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-            {captureControls}
-            <div className="glass-panel flex min-h-0 flex-1 overflow-hidden">{flowTable}</div>
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 pb-5 sm:px-6">
+            {trafficStream}
           </div>
         )
       case 'compare':
@@ -819,10 +832,9 @@ function App() {
       case 'capture':
       default:
         return (
-          <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-            {captureControls}
-            <div className="glass-panel flex min-h-0 flex-1 overflow-hidden">{flowTable}</div>
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 pb-5 sm:px-6">
             <MetricsRow flows={displayedFlows} />
+            {trafficStream}
           </div>
         )
     }
@@ -830,7 +842,7 @@ function App() {
 
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="app-shell flex flex-col overflow-hidden text-foreground">
       <a
         href="#main-content"
         className="fixed left-3 top-3 z-[100] -translate-y-20 rounded-md bg-foreground px-3 py-2 text-sm font-semibold text-background shadow-[var(--elevation-2)] transition-transform focus:translate-y-0"
@@ -868,15 +880,18 @@ function App() {
             exportCount={selectedFlowsForExport.length}
             onCopyToken={() => copyToClipboard(token)}
             tokenReady={!!token}
+            workspaceName={viewTitle}
           />
 
           <div className="flex min-h-0 flex-1">
             <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
-              <h1 className="sr-only">{viewTitle}</h1>
+              {initialLoadComplete && !(view === 'capture' && launchpadVisible) ? (
+                <WorkspaceHeading view={view} running={status.running} onConnect={() => openConnections()} />
+              ) : null}
               {renderView()}
             </main>
             {showInspector ? (
-              <aside className="hidden w-[460px] shrink-0 border-l border-hairline p-3 2xl:w-[520px] xl:block">
+              <aside aria-label="Flow inspector" className="hidden w-[380px] shrink-0 py-6 pr-5 2xl:w-[420px] xl:block">
                 <FlowInspector
                   flow={selectedFlow}
                   loading={selectedFlowLoading}
@@ -887,6 +902,10 @@ function App() {
               </aside>
             ) : null}
           </div>
+          <footer className="flex h-8 shrink-0 items-center justify-between gap-3 border-t border-white/[0.06] px-4 font-mono text-[9px] text-muted-foreground sm:px-6">
+            <span className="flex min-w-0 items-center gap-2 truncate"><Radio className="h-3 w-3 shrink-0 text-accent/70" />{activityLabel}<span className="hidden text-muted-foreground/40 sm:inline">/</span><span className="hidden sm:inline">{flows.length} loaded flows</span></span>
+            <button type="button" onClick={() => setShortcutsModalOpen(true)} className="flex shrink-0 items-center gap-1.5 rounded px-1 py-1 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"><Keyboard className="h-3 w-3" /><span className="hidden sm:inline">Keyboard shortcuts</span><kbd className="rounded border border-white/10 px-1 text-[8px]">?</kbd></button>
+          </footer>
         </div>
       </div>
 

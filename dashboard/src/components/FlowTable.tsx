@@ -8,7 +8,7 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { ArrowDown, ArrowUp, Star } from 'lucide-react'
+import { ArrowDown, ArrowUp, Star, Terminal } from '@/components/ui/icons'
 
 import { HighlightedText } from './HighlightedText'
 import {
@@ -172,6 +172,20 @@ export function FlowTable({
   const allSelected = flows.length > 0 && flows.every((flow) => selectedForExport.has(flow.id))
   const gridTemplate = '36px 32px 96px 84px 132px minmax(0,1fr) 150px'
 
+  if (rows.length === 0) {
+    return (
+      <div className="flex h-full min-h-[180px] flex-col items-center justify-center px-6 py-8 text-center">
+        <div className="relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/15 bg-accent/[0.035] shadow-[var(--glass-highlight)]">
+          <Terminal className="h-6 w-6 text-accent/75" />
+          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-[3px] border-background bg-accent/60" aria-hidden="true" />
+        </div>
+        <p className="text-sm font-medium tracking-tight text-foreground/90">No flows to display</p>
+        <p className="mt-2 max-w-[280px] text-xs leading-6 text-muted-foreground">Connect a source to capture traffic, or adjust your filters to find an exchange.</p>
+        <span className="terminal-label mt-5 text-[8px] text-accent/45">Waiting for the next signal</span>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col">
       <div className="border-b border-hairline px-3 py-1.5 font-mono text-[10px] text-muted-foreground sm:hidden">
@@ -186,7 +200,7 @@ export function FlowTable({
         <div className="flex h-full min-w-[760px] flex-col">
           <div
             role="row"
-            className="grid items-center border-b border-hairline bg-surface-2 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+            className="grid items-center border-b border-white/[0.07] bg-white/[0.015] px-3 py-3 font-mono text-[9px] font-normal uppercase tracking-[0.1em] text-muted-foreground"
             style={{ gridTemplateColumns: gridTemplate }}
           >
             <div role="columnheader" className="flex items-center">
@@ -265,7 +279,7 @@ export function FlowTable({
                         }
                       }}
                       className={`group absolute left-0 top-0 grid w-full cursor-pointer items-center border-b border-hairline/60 pl-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60 ${
-                        isSelected ? 'bg-foreground/[0.06]' : isForExport ? 'bg-accent/8' : 'hover:bg-surface-2'
+                        isSelected ? 'bg-accent/[0.075] shadow-[inset_2px_0_0_hsl(var(--accent))]' : isForExport ? 'bg-accent/[0.05]' : 'hover:bg-white/[0.025]'
                       } ${isActive ? 'ring-1 ring-inset ring-accent/40' : ''} ${isBookmarked ? 'shadow-[inset_3px_0_0_hsl(var(--warning))]' : ''}`}
                       style={{ transform: `translateY(${virtualRow.start}px)`, gridTemplateColumns: gridTemplate }}
                     >

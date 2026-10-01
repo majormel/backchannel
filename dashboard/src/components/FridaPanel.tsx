@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bug, ChevronDown, ChevronRight, Cpu, Loader2, MemoryStick, RefreshCw, Scan, Terminal, Trash2, Unplug, X, Zap } from 'lucide-react'
+import { Bug, ChevronDown, ChevronRight, Cpu, Loader2, MemoryStick, RefreshCw, Scan, Terminal, Trash2, Unplug, X, Zap } from '@/components/ui/icons'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
