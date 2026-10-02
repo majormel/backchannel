@@ -1,12 +1,15 @@
 import base64
 from dataclasses import dataclass
 from io import BytesIO
+import json
+import os
 from pathlib import Path
 import plistlib
 import secrets
 import socket
 import ssl
 import subprocess
+import sys
 import threading
 import time
 from uuid import uuid4
@@ -125,6 +128,64 @@ def get_lan_ip() -> str:
             client.close()
     except OSError:
         return "127.0.0.1"
+
+
+def _network_command(args: list[str], timeout: int = 3) -> str:
+    try:
+        result = subprocess.run(
+            args, capture_output=True, text=True, timeout=timeout,
+            env={**os.environ, "LC_ALL": "C"},
+        )
+        return result.stdout if result.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError, UnicodeError):
+        return ""
+
+
+def get_wifi_ssid() -> str | None:
+    """Read the host's connected Wi-Fi name without scanning or changing settings.
+
+    Missing tools, disconnected adapters, and OS privacy redaction all fall back
+    to manual entry. Never substitute a saved or nearby network for the current one.
+    """
+    def available(value: str) -> str | None:
+        if isinstance(value, str) and value and value.lower() not in {"<redacted>", "<hidden>", "--"} and len(value.encode("utf-8")) <= 32:
+            return value
+        return None
+
+    if sys.platform == "darwin":
+        ports = _network_command(["/usr/sbin/networksetup", "-listallhardwareports"])
+        for block in ports.split("\n\n"):
+            if "Hardware Port: Wi-Fi\n" not in block and "Hardware Port: AirPort\n" not in block:
+                continue
+            for line in block.splitlines():
+                if not line.startswith("Device: "):
+                    continue
+                output = _network_command(["/usr/sbin/networksetup", "-getairportnetwork", line.removeprefix("Device: ")])
+                for prefix in ("Current Wi-Fi Network: ", "Current AirPort Network: "):
+                    if output.startswith(prefix) and (ssid := available(output.removeprefix(prefix).rstrip("\r\n"))):
+                        return ssid
+        # Recent macOS releases may omit the name from networksetup.
+        output = _network_command(["/usr/sbin/system_profiler", "SPAirPortDataType", "-json"], timeout=5)
+        try:
+            for entry in json.loads(output).get("SPAirPortDataType", []):
+                for interface in entry.get("spairport_airport_interfaces", []):
+                    name = interface.get("spairport_current_network_information", {}).get("_name", "")
+                    if ssid := available(name):
+                        return ssid
+        except (ValueError, TypeError, AttributeError):
+            pass
+    elif sys.platform.startswith("linux"):
+        output = _network_command(["nmcli", "--terse", "--escape", "no", "--fields", "IN-USE,SSID", "device", "wifi", "list", "--rescan", "no"])
+        for line in output.splitlines():
+            if line.startswith("*:") and (ssid := available(line[2:])):
+                return ssid
+    elif sys.platform == "win32":
+        output = _network_command(["netsh", "wlan", "show", "interfaces"])
+        for line in output.splitlines():
+            key, separator, value = line.partition(":")
+            if separator and key.strip() == "SSID" and (ssid := available(value.strip())):
+                return ssid
+    return None
 
 
 def get_mitmproxy_cert_path() -> Path | None:

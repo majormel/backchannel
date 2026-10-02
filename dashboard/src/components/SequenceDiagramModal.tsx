@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Workflow, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Workflow, ChevronDown, ChevronUp } from '@/components/ui/icons'
 import { Button } from './ui/button'
 import { SequenceDiagram } from './SequenceDiagram'
 import { getSequence } from '@/lib/api'

@@ -15,6 +15,7 @@ import urllib.error
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from backchannel.server import (
+    DashboardHandler,
     MobilePairingHandler,
     _bytes_response,
     _client_request,
@@ -228,6 +229,27 @@ class TestResponseWrites(unittest.TestCase):
 
 
 class TestMobileSetupQr(unittest.TestCase):
+    def test_mobile_pairing_preserves_spaces_in_the_detected_ssid(self):
+        fake_httpd = types.SimpleNamespace(server_address=("0.0.0.0", 49152))
+        with patch("backchannel.server.mobile_setup.get_mitmproxy_cert_path", return_value=Path("/tmp/cert.pem")), patch("backchannel.server.mobile_setup.get_lan_ip", return_value="10.0.0.2"), patch("backchannel.server._ensure_mobile_pairing_server", return_value=fake_httpd), patch("backchannel.server.mobile_setup.generate_qr_png", return_value=b"png"):
+            payload, status_code = _create_mobile_pairing(" Studio WiFi ")
+        self.assertEqual(status_code, 200)
+        self.assertEqual(payload["wifi_ssid"], " Studio WiFi ")
+
+    def test_network_info_includes_wifi_name_when_authenticated(self):
+        handler = types.SimpleNamespace(path="/api/network-info", headers={"X-MCP-Token": "test-token"})
+        with patch.object(state, "dashboard_token", "test-token"), patch("backchannel.server.mobile_setup.get_lan_ip", return_value="10.0.0.2"), patch("backchannel.server.mobile_setup.get_wifi_ssid", return_value="Studio WiFi"), patch("backchannel.server._json_response") as response:
+            DashboardHandler.do_GET(handler)
+        self.assertEqual(response.call_args.args[1]["wifi_ssid"], "Studio WiFi")
+        self.assertEqual(response.call_args.args[1]["lan_ip"], "10.0.0.2")
+
+    def test_network_info_does_not_detect_wifi_without_authentication(self):
+        handler = types.SimpleNamespace(path="/api/network-info", headers={})
+        with patch.object(state, "dashboard_token", "test-token"), patch("backchannel.server.mobile_setup.get_wifi_ssid") as detect, patch("backchannel.server._json_response") as response:
+            DashboardHandler.do_GET(handler)
+        detect.assert_not_called()
+        self.assertEqual(response.call_args.kwargs["status"], 401)
+
     def test_pairing_profile_is_served_inline_for_ios_handoff(self):
         pairing = types.SimpleNamespace(host="10.0.0.2", proxy_port=8080, wifi_ssid="Studio WiFi")
         handler = types.SimpleNamespace(path="/pair/pairing-token", client_address=("10.0.0.8", 51234))

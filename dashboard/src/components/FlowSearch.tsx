@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, Filter, ChevronDown, BookmarkPlus, Pin, Save, Trash2 } from 'lucide-react'
+import { Search, X, Filter, ChevronDown, BookmarkPlus, Pin, Save, Trash2 } from '@/components/ui/icons'
 
 import { createSavedFlowView, hasFlowSearchFilters, loadSavedFlowViews, saveSavedFlowViews, serializeFlowSearchFilters, type SavedFlowView } from '../lib/flowViews'
 import { createFilterPreset, hasPresetCompatibleFilters, loadFilterPresets, saveFilterPresets, type FilterPreset } from '../lib/filterPresets'

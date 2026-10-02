@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, Copy, Play, Search, Square, Upload } from 'lucide-react'
+import { ArrowRight, ChevronRight, Copy, Play, Replay, Search, Square, Upload } from '@/components/ui/icons'
 
 import { Button } from '../ui/button'
 import type { MitmStatus } from '@/lib/types'
@@ -18,6 +18,7 @@ type CommandBarProps = {
   exportCount: number
   onCopyToken: () => void
   tokenReady: boolean
+  workspaceName?: string
 }
 
 export function CommandBar({
@@ -34,6 +35,7 @@ export function CommandBar({
   exportCount,
   onCopyToken,
   tokenReady,
+  workspaceName = 'Capture',
 }: CommandBarProps) {
   const [draft, setDraft] = useState(searchValue)
 
@@ -42,10 +44,13 @@ export function CommandBar({
   }, [searchValue])
 
   return (
-    <header className="glass-bar flex h-14 shrink-0 items-center gap-1.5 border-b border-white/[0.07] px-2 sm:gap-2 sm:px-4">
+    <header className="command-bar flex h-[76px] shrink-0 items-center gap-2 border-b border-white/[0.07] px-3 sm:gap-4 sm:px-6">
+      <div className="hidden shrink-0 items-center gap-2 text-[11px] lg:flex">
+        <span className="text-muted-foreground">Workspace</span><ChevronRight className="h-3 w-3 text-muted-foreground/50" /><span className="text-foreground/90">{workspaceName}</span>
+      </div>
       {searchVisible ? (
         <form
-          className="relative min-w-0 max-w-xl flex-1"
+          className="relative ml-auto min-w-0 max-w-[360px] flex-1"
           role="search"
           onSubmit={(event) => {
             event.preventDefault()
@@ -62,7 +67,7 @@ export function CommandBar({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Quick search flows…"
-            className="glass-inset h-9 w-full pl-9 pr-10 font-mono text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:border-white/[0.16] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.025] pl-9 pr-10 text-xs text-foreground placeholder:text-muted-foreground/75 focus-visible:border-accent/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
           <button
             type="submit"
@@ -81,7 +86,7 @@ export function CommandBar({
         </div>
       )}
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <div
           className={`hidden items-center gap-1.5 px-1 font-mono text-xs lg:inline-flex ${status.running ? 'text-accent' : 'text-muted-foreground'}`}
           title={liveLabel}
@@ -104,13 +109,13 @@ export function CommandBar({
             <span className="hidden sm:inline">Stop</span>
           </Button>
         ) : (
-          <Button size="sm" onClick={onStart} aria-label="Start proxy">
+          <Button size="sm" onClick={onStart} aria-label="Start proxy" className="rounded-pill px-3.5">
             <Play className="h-3.5 w-3.5 sm:mr-1.5" />
-            <span className="hidden sm:inline">Start</span>
+            <span className="hidden sm:inline">Start capture</span>
           </Button>
         )}
         <Button variant="ghost" size="sm" onClick={onOpenReplay} className="hidden xl:inline-flex">
-          <Play className="mr-1.5 h-3.5 w-3.5" />
+          <Replay className="mr-1.5 h-3.5 w-3.5" />
           Replay
         </Button>
         <Button variant="ghost" size="sm" onClick={onOpenExport} disabled={exportCount === 0} className="hidden xl:inline-flex">

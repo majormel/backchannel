@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, X, ExternalLink, Trash2 } from 'lucide-react'
+import { Star, X, ExternalLink, Trash2 } from '@/components/ui/icons'
 import { Button } from './ui/button'
 import type { FlowSummary } from '@/lib/types'
 import { getMethodColor, getStatusBadgeColor, truncateUrl } from '@/lib/flowDisplay'

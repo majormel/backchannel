@@ -92,17 +92,20 @@ Startup serves the dashboard and API but does not start `mitmdump`. Begin captur
 
 ### Dashboard
 
-The dashboard uses the **Flow Gate** design: a dark technical-glass workspace with a left
+The dashboard uses a dark glass workspace with phosphor-green accents, terminal labels, a left
 nav rail (Capture, Flows, Search, Compare, Sequence, Replay, Agents, Frida, Settings), a top
-command bar with quick search and a live proxy indicator, a dense flow table with client and
-tag columns and an All/HTTP/HTTPS/WebSocket filter, a metrics row (traffic summary, connected
-clients, protocol distribution), and a persistent tabbed inspector (Overview, Request,
-Response, Headers, JSON, Timing).
+command bar with quick search and a live proxy indicator, traffic metrics above a dense flow
+table with tags and an All/HTTP/HTTPS/WebSocket filter, and a persistent inspector with six
+visible tabs (Overview, Request, Response, Headers, JSON, Timing). Smaller screens use a
+scrollable workspace and a flow detail dialog. Decorative lens motion respects reduced-motion
+preferences, and fonts are bundled locally for offline use.
+
+![Backchannel dashboard with mint glass surfaces and custom navigation icons](docs/images/dashboard-preview.png)
 
 Quick search opens the Search workspace with the query applied. Inside that workspace, one
 advanced search surface provides presets, saved views, and method, status, and time filters.
 
-The Backchannel Cipher Lens mark focuses fragmented packets through a cobalt and aqua inspection lens. Packet fragments assemble and stream through the lens during active motion. Reduced-motion environments receive the assembled static mark.
+The Backchannel mark pairs opposing request and response arrows inside a mint glass tile. Light travels along each lane in turn, with a soft reflection across the glass and a traced edge. The dashboard shares a custom 24px SVG icon family, with distinct symbols for comparison, sequence diagrams, and replay. All decorative motion respects reduced-motion preferences. Static and animated logo exports live in `dashboard/public/brand/`; regenerate them from the React source with `cd dashboard && npm run brand:export`.
 
 On a new offline, empty installation, Capture opens a connection launchpad after proxy status and recent flows have loaded. Choose iPhone, this Mac/browser, or another LAN device. Skipping setup, entering the workbench, or detecting traffic persists completion, so clearing flows later does not reopen onboarding. The persistent **Connect source** action reopens the chooser, while Settings keeps advanced capture configuration.
 
@@ -256,7 +259,7 @@ Attach mode retries with the latest saved dashboard state if the previous dashbo
 
 ### iPhone QR Pairing
 
-Choose **Connect source** and **Pair an iPhone**. On the iPhone, open **Settings > Wi-Fi** and enter the exact network name with the checkmark, including spaces and capitalization; do not enter the password or an IP address. Backchannel starts or restarts capture on `0.0.0.0`, then opens a pairing-only listener on an ephemeral LAN port and places a high-entropy, ten-minute profile URL in the QR code. It does not expose the dashboard or dashboard token.
+Choose **Connect source** and **Pair an iPhone**. Backchannel detects the computer's current Wi-Fi name and fills it in when the operating system allows it. Confirm that the iPhone uses the same network in **Settings > Wi-Fi**; the field stays editable and detection never replaces a name you entered. If detection is unavailable (for example, Ethernet or OS privacy restrictions), enter the exact name beside the checkmark, including spaces and capitalization; do not enter the password or an IP address. The name scopes the profile's proxy settings to that Wi-Fi. Backchannel starts or restarts capture on `0.0.0.0`, then opens a pairing-only listener on an ephemeral LAN port and places a high-entropy, ten-minute profile URL in the QR code. It does not expose the dashboard or dashboard token.
 
 After scanning with the iPhone Camera app:
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bot, Check, FileSearch, ShieldCheck, Sparkles, Square } from 'lucide-react'
+import { Bot, Check, FileSearch, ShieldCheck, Sparkles, Square } from '@/components/ui/icons'
 import { ThinkingOrb } from 'thinking-orbs'
 
 import { getCodexReview, getCodexStatus, interruptCodexReview, startCodexReview } from '@/lib/api'

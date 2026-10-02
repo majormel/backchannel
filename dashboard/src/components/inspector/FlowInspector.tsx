@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Check, Copy, Play, ServerCrash, Sparkles } from 'lucide-react'
+import { Check, Copy, Crosshair, Replay, Sparkles } from '@/components/ui/icons'
 
 import BodyViewer from '../BodyViewer'
 import JsonHighlighter from '../JsonHighlighter'
@@ -8,6 +8,7 @@ import { FlowTimingDetail } from '../TimingWaterfall'
 import { HeaderTable } from './HeaderTable'
 import { OverviewTab } from './OverviewTab'
 import { Button } from '../ui/button'
+import { SignalLens } from '../layout/SignalLens'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { flowToCurl } from '@/lib/curl'
 import { getMethodColor, getStatusBadgeColor, getUrlDisplayParts, truncatePath } from '@/lib/flowDisplay'
@@ -28,8 +29,10 @@ type InspectorTab = (typeof INSPECTOR_TABS)[number]
 function InspectorShell({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <div className={className}>
-      <div className="glass-panel flex h-full min-h-[420px] items-center justify-center p-8 text-center">
-        {children}
+      <div className="inspector-empty glass-panel flex h-full min-h-[420px] flex-col overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-4"><span className="flex items-center gap-2 text-xs font-medium"><Crosshair className="h-3.5 w-3.5 text-accent/70" />Flow inspector</span><span className="terminal-label text-[8px] text-muted-foreground">Detail</span></div>
+        <div className="flex flex-1 items-center justify-center p-6 text-center">{children}</div>
+        <div className="terminal-label border-t border-white/[0.05] px-4 py-3 text-center text-[8px] text-muted-foreground/60">Select → Inspect → Replay</div>
       </div>
     </div>
   )
@@ -71,14 +74,13 @@ export function FlowInspector({ flow, loading = false, onReplayRequest, classNam
   if (!flow) {
     return (
       <InspectorShell className={className}>
-        <div className="space-y-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg border border-hairline bg-surface-1">
-            <ServerCrash className="h-5 w-5 text-muted-foreground" />
-          </div>
+        <div>
+          <SignalLens className="mx-auto mb-6 h-[180px] w-[180px] opacity-75" />
           <div>
-            <p className="text-sm font-medium text-foreground/90">Select a flow to inspect</p>
-            <p className="mt-1 text-sm text-muted-foreground">Request and response detail opens here.</p>
+            <p className="text-base font-medium tracking-tight text-foreground/90">Every request tells a story.</p>
+            <p className="mx-auto mt-3 max-w-[220px] text-xs leading-6 text-muted-foreground">Select a flow to inspect its headers, payload, and timing.</p>
           </div>
+          <div className="mt-6 flex justify-center gap-1.5" aria-hidden="true">{['{ }', '</>', 'ms'].map((label) => <span key={label} className="flex h-7 min-w-8 items-center justify-center rounded-md border border-white/[0.08] bg-white/[0.015] font-mono text-[9px] text-muted-foreground/70">{label}</span>)}</div>
         </div>
       </InspectorShell>
     )
@@ -90,7 +92,8 @@ export function FlowInspector({ flow, loading = false, onReplayRequest, classNam
   return (
     <div className={className}>
       <div className="glass-panel flex h-full flex-col overflow-hidden">
-        <div className="border-b border-hairline px-4 py-3">
+        <div className="border-b border-hairline px-4 py-4">
+          <div className="terminal-label mb-4 flex items-center gap-2 text-[9px] text-accent/70"><Crosshair className="h-3 w-3" />Flow inspector</div>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -110,7 +113,7 @@ export function FlowInspector({ flow, loading = false, onReplayRequest, classNam
             </div>
             <div className="flex shrink-0 gap-2">
               <Button variant="outline" size="sm" onClick={() => onReplayRequest(flow)}>
-                <Play className="mr-1.5 h-3.5 w-3.5" />
+                <Replay className="mr-1.5 h-3.5 w-3.5" />
                 Replay
               </Button>
               <Button
@@ -127,9 +130,9 @@ export function FlowInspector({ flow, loading = false, onReplayRequest, classNam
         </div>
 
         <Tabs value={tab} onValueChange={(value) => setTab(value as InspectorTab)} className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="w-full overflow-x-auto px-3">
+          <TabsList className="grid h-auto w-full grid-cols-3 gap-0 px-2 py-1">
             {INSPECTOR_TABS.map((name) => (
-              <TabsTrigger key={name} value={name} className="isolate border-transparent data-[state=active]:border-transparent">
+              <TabsTrigger key={name} value={name} className="isolate min-w-0 border-transparent px-2 py-2 text-[9px] data-[state=active]:border-transparent">
                 {tab === name ? (
                   <motion.span
                     layoutId={`${tabsId}-active-tab`}

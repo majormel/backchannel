@@ -1,0 +1,63 @@
+.brand-mark {
+  isolation: isolate;
+  animation: brand-arrive 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* One request/response exchange per cycle; decorative, not capture status. */
+.brand-lane { animation: brand-draw 900ms cubic-bezier(.22, 1, .36, 1) both; }
+.brand-lane-return { animation-delay: 160ms; }
+.brand-packet { animation: brand-transmit 6s ease-in-out infinite; }
+.brand-tip { animation: brand-receive 6s ease-in-out infinite; }
+.brand-packet-return, .brand-tip-return { animation-delay: 1.65s; }
+.brand-sheen { animation: brand-reflect 6s ease-in-out infinite; }
+.brand-edge-trace { animation: brand-trace 6s linear infinite; }
+
+.brand-emblem {
+  border-radius: 14px;
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .brand-lockup:hover .brand-emblem { transform: translateY(-1px); filter: brightness(1.12) drop-shadow(0 3px 7px #6ce8b01c); }
+  .brand-lockup:hover .brand-wordmark-dot { text-shadow: 0 0 8px hsl(153 90% 70% / 0.4); }
+}
+
+@keyframes brand-arrive {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes brand-transmit {
+  0%, 10% { stroke-dashoffset: 25; opacity: 0; }
+  16% { opacity: 1; }
+  30% { stroke-dashoffset: -90; opacity: 1; }
+  36%, 100% { stroke-dashoffset: -115; opacity: 0; }
+}
+
+@keyframes brand-draw {
+  from { stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 0; }
+  to { stroke-dasharray: 100; stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes brand-receive {
+  0%, 26%, 43%, 100% { opacity: 0; }
+  32% { opacity: .9; }
+}
+
+@keyframes brand-reflect {
+  0%, 48% { transform: translateX(0); opacity: 0; }
+  54% { opacity: .7; }
+  80%, 100% { transform: translateX(145px); opacity: 0; }
+}
+
+@keyframes brand-trace {
+  0%, 48% { stroke-dashoffset: 20; opacity: 0; }
+  56% { opacity: .55; }
+  85%, 100% { stroke-dashoffset: -100; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark, .brand-mark * { animation: none !important; }
+  .brand-packet, .brand-tip, .brand-sheen, .brand-edge-trace { display: none; }
+  .brand-emblem { transition: none; transform: none !important; }
+}

@@ -1,4 +1,4 @@
-import type { MitmStatus, FlowsResponse, FlowsSearchParams, Flow, FlowComparison, StartRequest, ReplayRequest, ReplayResponse, FlowsExportRequest, FlowsExportResponse, SequenceData, FridaStatus, FridaDevice, FridaHook, FridaEvent, FridaTraceResult, FridaMemoryScanResult, FridaMemoryReadResult, MobilePairing, CodexStatus, CodexReview } from './types'
+import type { MitmStatus, FlowsResponse, FlowsSearchParams, Flow, FlowComparison, StartRequest, ReplayRequest, ReplayResponse, FlowsExportRequest, FlowsExportResponse, SequenceData, FridaStatus, FridaDevice, FridaHook, FridaEvent, FridaTraceResult, FridaMemoryScanResult, FridaMemoryReadResult, MobilePairing, NetworkInfo, CodexStatus, CodexReview } from './types'
 
 async function fetchApi<T>(path: string, token: string | null, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {
@@ -65,6 +65,10 @@ export async function createMobilePairing(wifiSsid: string, token: string | null
     },
     body: JSON.stringify({ wifi_ssid: wifiSsid }),
   })
+}
+
+export async function getNetworkInfo(token: string | null, signal?: AbortSignal): Promise<NetworkInfo> {
+  return fetchApi<NetworkInfo>('/api/network-info', token, { signal })
 }
 
 export async function getMobilePairing(pairingToken: string, token: string | null): Promise<MobilePairing> {

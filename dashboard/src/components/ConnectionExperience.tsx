@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,12 +16,13 @@ import {
   ShieldCheck,
   Smartphone,
   Wifi,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 
-import { createMobilePairing, getMobilePairing } from '@/lib/api'
+import { createMobilePairing, getMobilePairing, getNetworkInfo } from '@/lib/api'
 import { IPHONE_PROFILE_INSTALL_STEPS, proxyTargetForSource, type ConnectionSource } from '@/lib/setup'
 import type { MitmStatus, MobilePairing } from '@/lib/types'
-import { BrandMark } from './layout/BrandMark'
+import { ConnectionMark } from './layout/ConnectionMark'
+import { SignalLens } from './layout/SignalLens'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 import { Input } from './ui/input'
@@ -33,6 +34,7 @@ type SourceDefinition = {
   title: string
   eyebrow: string
   detail: string
+  summary: string
   icon: typeof Smartphone
   recommended?: boolean
 }
@@ -43,6 +45,7 @@ const SOURCE_DEFINITIONS: SourceDefinition[] = [
     title: 'Pair an iPhone',
     eyebrow: 'One-scan setup',
     detail: 'Create a short-lived Wi-Fi profile with the proxy and certificate bundled together.',
+    summary: 'Capture app traffic with a guided QR setup.',
     icon: Smartphone,
     recommended: true,
   },
@@ -51,6 +54,7 @@ const SOURCE_DEFINITIONS: SourceDefinition[] = [
     title: 'This Mac or browser',
     eyebrow: 'Loopback capture',
     detail: 'Start a local proxy for a browser, desktop app, simulator, or command-line client.',
+    summary: 'Inspect a browser, desktop app, or local server.',
     icon: Laptop2,
   },
   {
@@ -58,6 +62,7 @@ const SOURCE_DEFINITIONS: SourceDefinition[] = [
     title: 'Another device',
     eyebrow: 'Manual LAN setup',
     detail: 'Expose the proxy on your network and connect any device that supports a manual HTTP proxy.',
+    summary: 'Connect Android and other devices on your network.',
     icon: Network,
   },
 ]
@@ -68,37 +73,65 @@ type SourceCardsProps = {
 }
 
 function SourceCards({ onChoose, compact = false }: SourceCardsProps) {
+  const reducedMotion = useReducedMotion()
+  if (compact) {
+    return (
+      <div className="space-y-3">
+        {SOURCE_DEFINITIONS.map((definition, index) => {
+          const Icon = definition.icon
+          return (
+            <motion.button
+              key={definition.source}
+              type="button"
+              className="connection-option group"
+              data-recommended={definition.recommended || undefined}
+              onClick={() => onChoose(definition.source)}
+              initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.055 }}
+            >
+              <span className="connection-option-icon"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-[15px] font-semibold tracking-[-0.025em] text-foreground sm:text-base">{definition.title}</span>
+                  {definition.recommended ? <span className="connection-recommended">Quick setup</span> : null}
+                </span>
+                <span className="block text-xs leading-5 text-muted-foreground sm:text-[13px]">{definition.summary}</span>
+              </span>
+              <ArrowRight className="connection-option-arrow h-4 w-4 shrink-0" aria-hidden="true" />
+            </motion.button>
+          )
+        })}
+      </div>
+    )
+  }
   return (
-    <div className={`grid gap-3 ${compact ? 'md:grid-cols-3' : 'lg:grid-cols-3'}`}>
+    <div className="grid gap-3 lg:grid-cols-3">
       {SOURCE_DEFINITIONS.map((definition, index) => {
         const Icon = definition.icon
         return (
           <motion.div
             key={definition.source}
-            initial={{ opacity: 0, y: 18 }}
+            initial={reducedMotion ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.38, delay: 0.08 + index * 0.06, ease: [0.22, 1, 0.36, 1] }}
           >
             <SpotlightCard
-              className={`h-full w-full ${definition.recommended ? 'border-accent/25 bg-accent/[0.045] hover:border-accent/40 hover:bg-accent/[0.06]' : ''}`}
+              className={`source-card h-full w-full p-5 ${definition.recommended ? 'border-accent/25 bg-accent/[0.045] hover:border-accent/40 hover:bg-accent/[0.06]' : ''}`}
               onClick={() => onChoose(definition.source)}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                   <Icon className="h-5 w-5 text-accent" />
                 </div>
-                {definition.recommended ? (
-                  <span className="rounded-pill border border-accent/20 bg-accent/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-accent">
-                    Recommended
-                  </span>
-                ) : null}
+                <span className="font-mono text-[10px] text-muted-foreground/60">0{index + 1}<span className="ml-1 text-accent/50">/</span></span>
               </div>
-              <div className="mt-7 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{definition.eyebrow}</div>
+              <div className="terminal-label mt-6 text-[9px] text-accent/65">{definition.eyebrow}</div>
               <div className="mt-2 flex items-center gap-2 text-base font-semibold text-foreground">
                 {definition.title}
                 <ArrowRight className="h-4 w-4 translate-x-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-accent" />
               </div>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{definition.detail}</p>
+              <p className="mt-2 text-xs leading-[1.8] text-muted-foreground">{definition.detail}</p>
             </SpotlightCard>
           </motion.div>
         )
@@ -113,43 +146,43 @@ type ConnectionLaunchpadProps = {
 }
 
 export function ConnectionLaunchpad({ onChoose, onSkip }: ConnectionLaunchpadProps) {
+  const reducedMotion = useReducedMotion()
   return (
-    <div className="connection-launchpad relative flex min-h-0 flex-1 overflow-auto p-4 sm:p-6 lg:p-10">
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col justify-center py-8">
-        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.44, ease: [0.22, 1, 0.36, 1] }}>
-          <div className="inline-flex items-center gap-3">
-            <BrandMark className="h-10 w-10 drop-shadow-[0_2px_16px_hsl(219_89%_60%/0.4)]" decorative />
-            <div className="text-lg font-semibold tracking-tight text-foreground">Backchannel</div>
-          </div>
-          <div className="mt-9 max-w-3xl">
-            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-accent">
-              <span className="h-px w-8 bg-accent/60" />
-              Connect a traffic source
+    <div className="connection-launchpad relative flex min-h-0 flex-1 overflow-auto px-5 py-6 sm:px-8 lg:px-12">
+      <div className="relative z-10 m-auto flex w-full max-w-[1120px] flex-col py-6">
+        <motion.div className="launchpad-hero grid items-center gap-6 lg:grid-cols-[1fr_340px]" initial={reducedMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.44, ease: [0.22, 1, 0.36, 1] }}>
+          <div className="relative z-10 max-w-3xl">
+            <div className="terminal-label flex items-center gap-2 text-accent">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_12px_hsl(var(--accent)/0.4)]" />
+              Your channel is ready
             </div>
-            <h1 className="mt-4 text-balance text-4xl font-semibold leading-[1.04] tracking-[-0.045em] text-foreground sm:text-5xl lg:text-6xl">
-              Open a channel to the traffic behind your apps.
+            <h1 className="mt-6 text-4xl font-medium leading-[1.06] tracking-[-0.055em] text-foreground sm:text-5xl xl:text-[64px]">
+              Behind every app,<br /><span className="text-accent">there’s a signal.</span>
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Choose where requests will come from. Backchannel will prepare the proxy, guide certificate setup, and confirm when traffic arrives.
+            <p className="mt-6 max-w-md text-sm leading-7 text-muted-foreground">
+              Open a channel to it. Capture requests, uncover patterns, and understand what your apps are really saying.
             </p>
+            <div className="mt-6 flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground"><span className="rounded border border-white/10 bg-white/[0.025] px-2 py-1">HTTP / HTTPS / WS</span><span>Local. Inspectable. Yours.</span></div>
           </div>
+          <div className="relative hidden lg:block"><SignalLens className="h-[340px] w-[340px]" /><span className="terminal-label absolute bottom-0 right-4 text-[8px] text-accent/50">[ Packet lens ]</span></div>
         </motion.div>
 
-        <div className="mt-10">
+        <div className="mt-10 lg:mt-12">
+          <div className="terminal-label mb-4 flex items-center gap-3 text-[9px] text-muted-foreground"><span className="text-accent/60">01</span>Choose your traffic source<span className="h-px flex-1 bg-white/[0.07]" /></div>
           <SourceCards onChoose={onChoose} />
         </div>
 
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={reducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.34, duration: 0.3 }}
           className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-hairline pt-5"
         >
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-accent" />
-            Local by default. No traffic leaves this machine unless you explicitly send it elsewhere.
+            Your capture stays on this machine.
           </div>
-          <Button variant="ghost" size="sm" onClick={onSkip}>Open an empty workspace</Button>
+          <Button variant="ghost" size="sm" onClick={onSkip}>Open an empty workspace<ArrowRight className="ml-2 h-3.5 w-3.5" /></Button>
         </motion.div>
       </div>
     </div>
@@ -181,8 +214,12 @@ export function ConnectionDialog({
   onComplete,
   onCopyToClipboard,
 }: ConnectionDialogProps) {
+  const reducedMotion = useReducedMotion()
   const [source, setSource] = useState<ConnectionSource | null>(initialSource)
   const [wifiSsid, setWifiSsid] = useState('')
+  const wifiEdited = useRef(false)
+  const [detectedWifi, setDetectedWifi] = useState<string | null>(null)
+  const [detectingWifi, setDetectingWifi] = useState(false)
   const [preparedStatus, setPreparedStatus] = useState<MitmStatus | null>(null)
   const [pairing, setPairing] = useState<MobilePairing | null>(null)
   const [preparedAt, setPreparedAt] = useState<number | null>(null)
@@ -197,6 +234,30 @@ export function ConnectionDialog({
     setPreparedAt(null)
     setError('')
   }, [initialSource, open])
+
+  useEffect(() => {
+    if (!open || source !== 'iphone' || !token) {
+      setDetectingWifi(false)
+      return
+    }
+    const controller = new AbortController()
+    setDetectingWifi(true)
+    setDetectedWifi(null)
+    void getNetworkInfo(token, controller.signal)
+      .then((network) => {
+        if (controller.signal.aborted) return
+        const ssid = network.wifi_ssid || null
+        setDetectedWifi(ssid)
+        if (!wifiEdited.current) setWifiSsid(ssid || '')
+      })
+      .catch(() => {
+        if (!controller.signal.aborted && !wifiEdited.current) setWifiSsid('')
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setDetectingWifi(false)
+      })
+    return () => controller.abort()
+  }, [open, source, token])
 
   useEffect(() => {
     if (!pairing?.token || pairing.status === 'expired') return
@@ -242,7 +303,7 @@ export function ConnectionDialog({
       setPreparedStatus(nextStatus)
       setPreparedAt(attemptStartedAt)
       if (source === 'iphone') {
-        const nextPairing = await createMobilePairing(wifiSsid.trim(), token)
+        const nextPairing = await createMobilePairing(wifiSsid, token)
         setPairing(nextPairing)
       }
     } catch (nextError) {
@@ -259,9 +320,9 @@ export function ConnectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="connection-drawer left-auto right-0 top-0 flex h-screen w-full max-w-2xl translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-y-0 border-r-0 bg-background/84 p-0 sm:rounded-none">
-        <DialogHeader className="shrink-0 border-b border-hairline px-5 py-4 pr-14 sm:px-7 sm:py-5">
-          <div className="flex items-center gap-3">
+      <DialogContent className="connection-drawer left-auto right-0 top-0 flex h-[100dvh] w-full max-w-2xl translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-y-0 border-r-0 bg-background/84 p-0 sm:rounded-none">
+        <DialogHeader className="connection-header shrink-0 space-y-0 text-left">
+          <div className="mb-6 flex h-7 items-center pr-10">
             {source ? (
               <button
                 type="button"
@@ -272,41 +333,56 @@ export function ConnectionDialog({
                   setPreparedAt(null)
                   setError('')
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-hairline bg-white/[0.035] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="connection-back inline-flex items-center gap-2 rounded-md text-xs text-muted-foreground transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
                 aria-label="Back to connection sources"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-3.5 w-3.5" />
+                All sources
               </button>
             ) : (
-              <BrandMark className="h-10 w-10" decorative />
+              <div className="terminal-label flex items-center gap-2.5 text-[9px] text-muted-foreground">
+                <span className="text-accent/80">Backchannel</span>
+                <span className="text-white/20">/</span>
+                Connect
+              </div>
             )}
-            <div>
-              <DialogTitle>{selectedDefinition?.title || 'Connect a traffic source'}</DialogTitle>
-              <DialogDescription className="mt-1">
-                {selectedDefinition?.detail || 'Choose how requests will reach Backchannel.'}
+          </div>
+          <div className="flex items-start gap-4 sm:gap-5">
+            <ConnectionMark />
+            <div className="min-w-0 flex-1 pt-0.5">
+              <DialogTitle className="text-[26px] font-medium leading-[1.15] tracking-[-0.045em] sm:text-[30px]">
+                {selectedDefinition?.title || 'Open a channel'}
+                {!source ? <span className="ml-1.5 text-accent" aria-hidden="true">_</span> : null}
+              </DialogTitle>
+              <DialogDescription className="mt-2 max-w-md text-[13px] leading-[1.65]">
+                {selectedDefinition?.summary || 'Choose a device. See what it’s sending.'}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-7 sm:py-7">
+        <div className="min-h-0 flex-1 overflow-auto px-5 py-6 sm:px-8 sm:py-7">
           <AnimatePresence mode="wait" initial={false}>
             {!source ? (
-              <motion.div key="sources" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }}>
+              <motion.div key="sources" initial={reducedMotion ? false : { opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: -12 }} transition={{ duration: reducedMotion ? 0 : 0.2 }}>
+                <div className="terminal-label mb-4 flex items-center justify-between text-[9px] text-muted-foreground">
+                  <span>Select your source</span><span className="text-muted-foreground/50">01 — 03</span>
+                </div>
                 <SourceCards onChoose={setSource} compact />
-                <div className="mt-6 rounded-xl border border-hairline bg-black/15 px-4 py-3 text-xs leading-5 text-muted-foreground">
-                  LAN setup may restart an active loopback proxy so outside devices can reach it. Existing capture files are preserved.
+                <div className="mt-6 flex items-start gap-2.5 px-1 text-xs leading-5 text-muted-foreground">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent/70" aria-hidden="true" />
+                  <div><p className="text-foreground/75">Captured traffic stays on your computer.</p><p className="mt-1 text-[11px] text-muted-foreground/80">Connecting a network device may restart the proxy. Your captures are preserved.</p></div>
                 </div>
               </motion.div>
             ) : (
-              <motion.div key={source} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.2 }} className="space-y-5">
+              <motion.div key={source} initial={reducedMotion ? false : { opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={reducedMotion ? { opacity: 0 } : { opacity: 0, x: 16 }} transition={{ duration: reducedMotion ? 0 : 0.2 }} className="space-y-5">
                 {source === 'iphone' ? (
                   <div className="glass-panel space-y-5 p-5 sm:p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">Secure pairing</div>
-                        <h3 className="mt-2 text-lg font-semibold text-foreground">Create a Wi-Fi scoped profile</h3>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">The profile carries the proxy target and mitmproxy certificate without exposing your dashboard token.</p>
+                        <h3 className="mt-2 text-lg font-semibold text-foreground">Connect on the same Wi-Fi</h3>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">This profile tells your iPhone to use Backchannel on this Wi-Fi and includes the mitmproxy certificate.</p>
                       </div>
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-hairline bg-white/[0.04]">
                         <MonitorSmartphone className="h-5 w-5 text-accent" />
@@ -316,9 +392,21 @@ export function ConnectionDialog({
                     {!pairing ? (
                       <>
                         <div className="space-y-2">
-                          <Label htmlFor="connection-wifi-ssid">iPhone Wi-Fi network</Label>
-                          <Input id="connection-wifi-ssid" value={wifiSsid} onChange={(event) => setWifiSsid(event.target.value)} placeholder="Exact network name" maxLength={32} />
-                          <p className="text-xs leading-5 text-muted-foreground">On the iPhone, open Settings &gt; Wi-Fi and enter the exact network name with the checkmark, including spaces and capitalization. Do not enter the password or an IP address.</p>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <Label htmlFor="connection-wifi-ssid">Wi-Fi network your iPhone uses</Label>
+                            <span className="flex items-center gap-1.5 font-mono text-[10px] text-accent" role="status">
+                              {detectingWifi ? <><Loader2 className="h-3 w-3 animate-spin" />Detecting laptop Wi-Fi…</> : detectedWifi && wifiSsid === detectedWifi ? <><Wifi className="h-3 w-3" />Detected on laptop</> : null}
+                            </span>
+                          </div>
+                          <Input id="connection-wifi-ssid" value={wifiSsid} onChange={(event) => { wifiEdited.current = true; setWifiSsid(event.target.value) }} placeholder="Exact Wi-Fi network name" maxLength={32} autoComplete="off" aria-describedby="connection-wifi-help" />
+                          <p id="connection-wifi-help" className="text-xs leading-5 text-muted-foreground">
+                            {detectedWifi && wifiSsid === detectedWifi
+                              ? 'Filled from your laptop. Check that your iPhone uses this same network in Settings > Wi-Fi. You can edit the name if needed.'
+                              : detectingWifi
+                                ? 'Keep your laptop and iPhone on the same Wi-Fi. You can also enter the name yourself.'
+                                : 'Enter the name beside the checkmark in iPhone Settings > Wi-Fi, including spaces and capitalization. Use the network name, not its password.'}
+                          </p>
+                          {!detectingWifi && !detectedWifi && token ? <p className="text-xs text-muted-foreground">Automatic detection is unavailable. Your laptop may use Ethernet, or the system may hide its Wi-Fi name.</p> : null}
                         </div>
                         <Button className="w-full" onClick={() => void handlePrepare()} disabled={preparing || !token}>
                           {preparing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <QrCode className="mr-2 h-4 w-4" />}

@@ -1,3 +1,4 @@
+import json
 import plistlib
 import subprocess
 import sys
@@ -15,6 +16,7 @@ from backchannel.mobile_setup import (
     generate_qr_png,
     get_lan_ip,
     get_mitmproxy_cert_path,
+    get_wifi_ssid,
     read_cert_pem,
     setup_android_adb,
 )
@@ -26,6 +28,46 @@ class FakeQrImage:
 
 
 class TestMobileSetup(unittest.TestCase):
+    def test_wifi_ssid_uses_actual_mac_wifi_adapter(self):
+        outputs = [
+            "Hardware Port: Ethernet\nDevice: en0\n\nHardware Port: Wi-Fi\nDevice: en7\nEthernet Address: unused\n",
+            "Current Wi-Fi Network: Studio: 5G\n",
+        ]
+        with patch("backchannel.mobile_setup.sys.platform", "darwin"), patch("backchannel.mobile_setup._network_command", side_effect=outputs) as command:
+            self.assertEqual(get_wifi_ssid(), "Studio: 5G")
+        self.assertEqual(command.call_args.args[0][-1], "en7")
+
+    def test_wifi_ssid_mac_falls_back_to_current_network_only(self):
+        data = {"SPAirPortDataType": [{"spairport_airport_interfaces": [{
+            "spairport_current_network_information": {"_name": "Café WiFi"},
+            "spairport_airport_other_local_wireless_networks": [{"_name": "Wrong network"}],
+        }]}]}
+        with patch("backchannel.mobile_setup.sys.platform", "darwin"), patch("backchannel.mobile_setup._network_command", side_effect=["", json.dumps(data)]):
+            self.assertEqual(get_wifi_ssid(), "Café WiFi")
+
+    def test_wifi_ssid_mac_rejects_redacted_disconnected_and_malformed_data(self):
+        for output in [
+            '{"SPAirPortDataType":[{"spairport_airport_interfaces":[{"spairport_current_network_information":{"_name":"<redacted>"}}]}]}',
+            '{"SPAirPortDataType":[{"spairport_airport_interfaces":[{"spairport_airport_other_local_wireless_networks":[{"_name":"Nearby"}]}]}]}',
+            "not json",
+        ]:
+            with self.subTest(output=output), patch("backchannel.mobile_setup.sys.platform", "darwin"), patch("backchannel.mobile_setup._network_command", side_effect=["", output]):
+                self.assertIsNone(get_wifi_ssid())
+
+    def test_wifi_ssid_linux_preserves_colons_and_ignores_nearby_networks(self):
+        with patch("backchannel.mobile_setup.sys.platform", "linux"), patch("backchannel.mobile_setup._network_command", return_value=":Nearby\n*:Studio: 5G\n") as command:
+            self.assertEqual(get_wifi_ssid(), "Studio: 5G")
+        self.assertEqual(command.call_args.args[0][-2:], ["--rescan", "no"])
+
+    def test_wifi_ssid_windows_does_not_use_bssid(self):
+        with patch("backchannel.mobile_setup.sys.platform", "win32"), patch("backchannel.mobile_setup._network_command", return_value="    BSSID : aa:bb:cc:dd:ee:ff\n    SSID : Home WiFi\n"):
+            self.assertEqual(get_wifi_ssid(), "Home WiFi")
+
+    def test_wifi_ssid_detection_errors_fall_back_to_manual_entry(self):
+        for error in [FileNotFoundError(), PermissionError(), subprocess.TimeoutExpired("nmcli", 3)]:
+            with self.subTest(error=error), patch("backchannel.mobile_setup.sys.platform", "linux"), patch("backchannel.mobile_setup.subprocess.run", side_effect=error):
+                self.assertIsNone(get_wifi_ssid())
+
     def test_get_lan_ip_returns_string(self):
         value = get_lan_ip()
         self.assertIsInstance(value, str)

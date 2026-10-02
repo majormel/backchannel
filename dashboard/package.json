@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "brand:export": "node scripts/export-brand.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUpDown, Clock, Globe, Shield, Zap, Download, Timer, Info } from 'lucide-react'
+import { ArrowUpDown, Clock, Globe, Shield, Zap, Download, Timer, Info } from '@/components/ui/icons'
 
 import type { Flow, FlowSummary, FlowTiming } from '@/lib/types'
 

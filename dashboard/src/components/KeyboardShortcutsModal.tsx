@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Keyboard } from 'lucide-react'
+import { X, Keyboard } from '@/components/ui/icons'
 import { Button } from './ui/button'
 import type { Shortcut } from '@/hooks/useKeyboardShortcuts'
 

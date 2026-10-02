@@ -1,0 +1,125 @@
+@layer components {
+  .connection-header {
+    position: relative;
+    padding: 22px 20px 28px;
+    border-bottom: 1px solid hsl(var(--foreground) / 0.07);
+    background: radial-gradient(ellipse at 0 0, hsl(var(--accent) / 0.065), transparent 65%);
+  }
+
+  .connection-header::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 20px;
+    width: 96px;
+    height: 1px;
+    background: linear-gradient(90deg, hsl(var(--accent) / 0.5), transparent);
+  }
+
+  .connection-mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    border: 1px solid hsl(var(--accent) / 0.2);
+    border-radius: 17px;
+    color: hsl(var(--accent));
+    background: linear-gradient(145deg, hsl(var(--accent) / 0.14), hsl(var(--accent) / 0.025) 65%);
+    box-shadow: inset 0 1px 0 hsl(150 70% 90% / 0.16), inset 0 -1px 0 hsl(0 0% 0% / 0.3), 0 8px 24px hsl(0 0% 0% / 0.12);
+  }
+
+  .connection-mark svg { width: 32px; height: 32px; }
+  .connection-mark .icon-signal { animation: connection-mark-reveal 700ms 180ms ease-out both; }
+
+  .connection-drawer > .dialog-close {
+    top: 20px;
+    right: 20px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid hsl(var(--foreground) / 0.08);
+    border-radius: 10px;
+    background: hsl(var(--foreground) / 0.025);
+  }
+
+  .connection-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 100px;
+    padding: 20px;
+    border: 1px solid hsl(var(--foreground) / 0.08);
+    border-radius: 16px;
+    background: linear-gradient(115deg, hsl(var(--foreground) / 0.035), hsl(var(--foreground) / 0.01));
+    box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.035);
+    text-align: left;
+    transition: background-color 180ms, border-color 180ms;
+  }
+
+  .connection-option[data-recommended] {
+    border-color: hsl(var(--accent) / 0.24);
+    background: linear-gradient(115deg, hsl(var(--accent) / 0.065), hsl(var(--accent) / 0.015));
+  }
+
+  .connection-option-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid hsl(var(--foreground) / 0.075);
+    border-radius: 12px;
+    background: hsl(var(--foreground) / 0.025);
+    color: hsl(var(--foreground) / 0.7);
+  }
+
+  .connection-option[data-recommended] .connection-option-icon {
+    border-color: hsl(var(--accent) / 0.15);
+    color: hsl(var(--accent));
+    background: hsl(var(--accent) / 0.05);
+  }
+
+  .connection-recommended {
+    border-radius: 5px;
+    padding: 3px 5px;
+    background: hsl(var(--accent) / 0.075);
+    color: hsl(var(--accent) / 0.85);
+    font: 9px/1.2 'IBM Plex Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  .connection-option-arrow { color: hsl(var(--foreground) / 0.4); transition: transform 180ms, color 180ms; }
+  .connection-option:focus-visible { outline: 2px solid hsl(var(--accent)); outline-offset: 3px; }
+
+  @media (hover: hover) {
+    .connection-option:hover { border-color: hsl(var(--accent) / 0.4); background-color: hsl(var(--accent) / 0.045); }
+    .connection-option:hover .connection-option-arrow { color: hsl(var(--accent)); transform: translateX(3px); }
+  }
+
+  @media (min-width: 640px) {
+    .connection-header { padding: 22px 32px 30px; }
+    .connection-header::after { left: 32px; }
+    .connection-drawer > .dialog-close { right: 32px; }
+  }
+
+  @media (max-width: 420px) {
+    .connection-option { padding: 16px; gap: 12px; }
+    .connection-option-icon { flex-basis: 36px; width: 36px; height: 40px; }
+    .connection-mark { flex-basis: 48px; width: 48px; height: 48px; border-radius: 14px; }
+  }
+
+  @keyframes connection-mark-reveal {
+    from { opacity: 0; stroke-dasharray: 1; stroke-dashoffset: 1; }
+    to { opacity: 1; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .connection-mark .icon-signal { animation: none; }
+    .connection-option, .connection-option-arrow, .connection-back { transition: none; }
+  }
+}
